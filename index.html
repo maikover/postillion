@@ -6,7 +6,6 @@
     <title>Analizador de Datos Estructurados Postillion</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Todos los estilos anteriores se mantienen igual */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f4f4f9;
@@ -44,8 +43,116 @@
             box-sizing: border-box;
         }
 
-        /* ... (otros estilos se mantienen igual) ... */
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
 
+        button {
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analyze-btn {
+            background-color: #d9534f;
+            color: white;
+        }
+
+        .clear-btn {
+            background-color: #f8d7da;
+            color: #d9534f;
+            border: 2px solid #d9534f;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .analyze-btn:hover {
+            background-color: #c9302c;
+        }
+
+        .clear-btn:hover {
+            background-color: #f5c6cb;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            border: 2px solid #d9534f;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .result div {
+            margin: 15px 0;
+            padding: 12px;
+            background-color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .result strong {
+            color: #d9534f;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            .button-container {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            textarea {
+                height: 120px;
+            }
+        }
+
+        .footer {
+            background-color: #f4f4f9;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+            border-top: 2px solid #d9534f;
+        }
+
+        .footer-content p {
+            margin: 8px 0;
+            color: #666;
+        }
+
+        .footer-content a {
+            color: #d9534f;
+            text-decoration: none;
+        }
+
+        .footer-content a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-logo img {
+            max-width: 100px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
@@ -68,7 +175,18 @@
     </div>
 
     <footer class="footer">
-        <!-- Footer se mantiene igual -->
+        <div class="footer-content">
+            <p>Desarrollo Web: Michael Steven Martinez Pulido</p>
+            <p>exclusivo para: Dirección de Operaciones Call Center.</p>
+            <p>
+                <a href="https://www.example.com" target="_blank">Site Formación</a> I
+                <a href="https://www.example.com" target="_blank">WorkPlace</a>
+            </p>
+            <p>2024</p>
+            <div class="footer-logo">
+                <img src="https://arcaico.com.co/wp-content/uploads/2024/12/logo-davivienda.png" alt="Logo Davivienda">
+            </div>
+        </div>
     </footer>
 
     <script>
@@ -82,21 +200,30 @@
                 return isCurrency ? `$${value}` : value;
             };
 
+            // Función mejorada de extracción de datos
             const extraerDato = (patron, transformacion = v => v) => {
-                const match = inputText.match(new RegExp(patron, 'i'));
-                return match ? transformacion(match[1]) : 'Dato no encontrado';
+                const regex = new RegExp(patron.source, 'gi'); // Hacerla global e insensible a mayúsculas
+                let match;
+                let lastMatch;
+                
+                // Buscar todas las coincidencias y tomar la última
+                while ((match = regex.exec(inputText)) !== null) {
+                    lastMatch = match;
+                }
+                
+                return lastMatch ? transformacion(lastMatch[1]) : 'Dato no encontrado';
             };
 
             const datos = {
                 retailerId: extraerDato(/Retailer_Id\s*=\s*\[([^\]]+)\]/),
-                nationalInternational: extraerDato(/NATIONAL\/INTERNATIONAL_TX\s*=\s*\[([^\]]+)\]/,
+                nationalInternational: extraerDato(/NATIONAL\/?INTERNATIONAL_?TX\s*=\s*\[([^\]]+)\]/,
                     v => v?.toUpperCase() === 'N' ? 'Nacional' : v?.toUpperCase() === 'IN' ? 'Internacional' : 'Desconocido'),
-                // EXPRESIÓN REGULAR EXACTA PARA ACQ_NETWORK
-                network: extraerDato(/ACQ_NETWORK\s*=\s*\[([^\]]+)\]/i),
+                // Corrección definitiva para ACQ_NETWORK
+                network: extraerDato(/ACQ_?NETW(O?RK)\s*=\s*\[([^\]]+)\]/i, m => m[2]), // Captura el segundo grupo
                 instalments: extraerDato(/Instalments\s*=\s*\[([^\]]+)\]/),
-                pagoRecurrente: extraerDato(/PAGO_RECURRENTE\s*=\s*\[([^\]]+)\]/,
+                pagoRecurrente: extraerDato(/PAGO_?RECURRENTE\s*=\s*\[([^\]]+)\]/i,
                     v => v?.toLowerCase() === 'true' ? 'Sí' : 'No'),
-                amountReq: extraerDato(/AMOUNT_REQ\s*=\s*\[([^\]]+)\]/,
+                amountReq: extraerDato(/AMOUNT_?REQ\s*=\s*\[([^\]]+)\]/i,
                     v => (parseInt(v || 0) / 100).toFixed(2))
             };
 
