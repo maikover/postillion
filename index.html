@@ -200,7 +200,7 @@
                 return isCurrency ? `$${value}` : value;
             };
 
-            // Extracción de datos
+            // Función mejorada para extracción de datos
             const extraerDato = (patron, transformacion = v => v) => {
                 const match = inputText.match(new RegExp(patron, 'i'));
                 return match ? transformacion(match[1]) : 'Dato no encontrado';
@@ -210,7 +210,8 @@
                 retailerId: extraerDato(/Retailer_Id\s*=\s*\[([^\]]+)\]/),
                 nationalInternational: extraerDato(/NATIONAL\/INTERNATIONAL_TX\s*=\s*\[([^\]]+)\]/,
                     v => v?.toUpperCase() === 'N' ? 'Nacional' : v?.toUpperCase() === 'IN' ? 'Internacional' : 'Desconocido'),
-                network: extraerDato(/NETWOK\s*=\s*\[([^\]]+)\]/),
+                // Corrección aplicada aquí para ACQ_NETWOK
+                network: extraerDato(/ACQ_NETWOK\s*=\s*\[([^\]]+)\]/),
                 instalments: extraerDato(/Instalments\s*=\s*\[([^\]]+)\]/),
                 pagoRecurrente: extraerDato(/PAGO_RECURRENTE\s*=\s*\[([^\]]+)\]/,
                     v => v?.toLowerCase() === 'true' ? 'Sí' : 'No'),
@@ -218,7 +219,6 @@
                     v => (parseInt(v || 0) / 100).toFixed(2))
             };
 
-            // Construcción de resultados
             resultDiv.innerHTML = `
                 <div><strong>Código Unido de Comercio:</strong> ${getValue(datos.retailerId)}</div>
                 <div><strong>Tipo de Transacción:</strong> ${getValue(datos.nationalInternational)}</div>
