@@ -200,22 +200,30 @@
                 return isCurrency ? `$${value}` : value;
             };
 
-            // Función mejorada para extracción de datos
+            // Función mejorada de extracción de datos
             const extraerDato = (patron, transformacion = v => v) => {
-                const match = inputText.match(new RegExp(patron, 'i'));
-                return match ? transformacion(match[1]) : 'Dato no encontrado';
+                const regex = new RegExp(patron.source, 'gi'); // Hacerla global e insensible a mayúsculas
+                let match;
+                let lastMatch;
+                
+                // Buscar todas las coincidencias y tomar la última
+                while ((match = regex.exec(inputText)) !== null) {
+                    lastMatch = match;
+                }
+                
+                return lastMatch ? transformacion(lastMatch[1]) : 'Dato no encontrado';
             };
 
             const datos = {
                 retailerId: extraerDato(/Retailer_Id\s*=\s*\[([^\]]+)\]/),
-                nationalInternational: extraerDato(/NATIONAL\/INTERNATIONAL_TX\s*=\s*\[([^\]]+)\]/,
+                nationalInternational: extraerDato(/NATIONAL\/?INTERNATIONAL_?TX\s*=\s*\[([^\]]+)\]/,
                     v => v?.toUpperCase() === 'N' ? 'Nacional' : v?.toUpperCase() === 'IN' ? 'Internacional' : 'Desconocido'),
-                // Corrección aplicada aquí para ACQ_NETWOK
-                network: extraerDato(/ACQ_NETWOK\s*=\s*\[([^\]]+)\]/),
+                // Corrección definitiva para ACQ_NETWORK
+                network: extraerDato(/ACQ_?NETW(O?RK)\s*=\s*\[([^\]]+)\]/i, m => m[2]), // Captura el segundo grupo
                 instalments: extraerDato(/Instalments\s*=\s*\[([^\]]+)\]/),
-                pagoRecurrente: extraerDato(/PAGO_RECURRENTE\s*=\s*\[([^\]]+)\]/,
+                pagoRecurrente: extraerDato(/PAGO_?RECURRENTE\s*=\s*\[([^\]]+)\]/i,
                     v => v?.toLowerCase() === 'true' ? 'Sí' : 'No'),
-                amountReq: extraerDato(/AMOUNT_REQ\s*=\s*\[([^\]]+)\]/,
+                amountReq: extraerDato(/AMOUNT_?REQ\s*=\s*\[([^\]]+)\]/i,
                     v => (parseInt(v || 0) / 100).toFixed(2))
             };
 
