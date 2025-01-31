@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analizador de Datos Estructurados Postillion</title>
-    <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
@@ -172,9 +171,7 @@
             </button>
         </div>
 
-        <div class="result" id="result">
-            <!-- Resultados se mostrarán aquí -->
-        </div>
+        <div class="result" id="result"></div>
     </div>
 
     <footer class="footer">
@@ -198,45 +195,37 @@
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = '';
 
-            // Función para verificar y formatear resultados
             const getValue = (value, isCurrency = false) => {
-                if (!value || value === 'No encontrado') return 'Dato no encontrado';
+                if (!value || value === 'Dato no encontrado') return 'Dato no encontrado';
                 return isCurrency ? `$${value}` : value;
             };
 
-            // Extraer Retailer_ID
-            const retailerIdMatch = inputText.match(/Retailer_Id\s*=\s*\[([^\]]+)\]/);
-            const retailerId = retailerIdMatch ? retailerIdMatch[1] : 'Dato no encontrado';
+            // Extracción de datos
+            const extraerDato = (patron, transformacion = v => v) => {
+                const match = inputText.match(new RegExp(patron, 'i'));
+                return match ? transformacion(match[1]) : 'Dato no encontrado';
+            };
 
-            // Extraer Nacional/Internacional
-            const nationalInternationalMatch = inputText.match(/NATIONAL_INTERNATIONAL_TX\s*=\s*\[([^\]]+)\]/);
-            const nationalInternational = nationalInternationalMatch 
-                ? (nationalInternationalMatch[1] === 'N' ? 'Nacional' : 'Internacional') 
-                : 'Dato no encontrado';
+            const datos = {
+                retailerId: extraerDato(/Retailer_Id\s*=\s*\[([^\]]+)\]/),
+                nationalInternational: extraerDato(/NATIONAL\/INTERNATIONAL_TX\s*=\s*\[([^\]]+)\]/,
+                    v => v?.toUpperCase() === 'N' ? 'Nacional' : v?.toUpperCase() === 'IN' ? 'Internacional' : 'Desconocido'),
+                network: extraerDato(/NETWOK\s*=\s*\[([^\]]+)\]/),
+                instalments: extraerDato(/Instalments\s*=\s*\[([^\]]+)\]/),
+                pagoRecurrente: extraerDato(/PAGO_RECURRENTE\s*=\s*\[([^\]]+)\]/,
+                    v => v?.toLowerCase() === 'true' ? 'Sí' : 'No'),
+                amountReq: extraerDato(/AMOUNT_REQ\s*=\s*\[([^\]]+)\]/,
+                    v => (parseInt(v || 0) / 100).toFixed(2))
+            };
 
-            // Extraer Número de Cuotas
-            const instalmentsMatch = inputText.match(/Instalments\s*=\s*\[([^\]]+)\]/);
-            const instalments = instalmentsMatch ? instalmentsMatch[1] : 'Dato no encontrado';
-
-            // Extraer Pago Recurrente
-            const pagoRecurrenteMatch = inputText.match(/PAGO_RECURRENTE\s*=\s*\[([^\]]+)\]/);
-            const pagoRecurrente = pagoRecurrenteMatch 
-                ? (pagoRecurrenteMatch[1].toLowerCase() === 'true' ? 'Sí' : 'No') 
-                : 'Dato no encontrado';
-
-            // Extraer Valor de la Transacción
-            const amountReqMatch = inputText.match(/AMOUNT_REQ\s*=\s*\[([^\]]+)\]/);
-            const amountReq = amountReqMatch 
-                ? (parseInt(amountReqMatch[1]) / 100).toFixed(2) 
-                : 'Dato no encontrado';
-
-            // Mostrar resultados
+            // Construcción de resultados
             resultDiv.innerHTML = `
-                <div><strong>Código Unido de Comercio (Retailer_ID):</strong> ${getValue(retailerId)}</div>
-                <div><strong>Tipo de Transacción:</strong> ${getValue(nationalInternational)}</div>
-                <div><strong>Número de Cuotas:</strong> ${getValue(instalments)}</div>
-                <div><strong>Pago Recurrente:</strong> ${getValue(pagoRecurrente)}</div>
-                <div><strong>Valor de la Transacción:</strong> ${getValue(amountReq, true)}</div>
+                <div><strong>Código Unido de Comercio:</strong> ${getValue(datos.retailerId)}</div>
+                <div><strong>Tipo de Transacción:</strong> ${getValue(datos.nationalInternational)}</div>
+                <div><strong>Red:</strong> ${getValue(datos.network)}</div>
+                <div><strong>Cuotas:</strong> ${getValue(datos.instalments)}</div>
+                <div><strong>Pago Recurrente:</strong> ${getValue(datos.pagoRecurrente)}</div>
+                <div><strong>Valor Transacción:</strong> ${getValue(datos.amountReq, true)}</div>
             `;
         }
 
