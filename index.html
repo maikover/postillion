@@ -1,11 +1,19 @@
+<!-- DOCTYPE declaration specifies the document type and version -->
 <!DOCTYPE html>
+<!-- Language attribute set to Spanish -->
 <html lang="es">
 <head>
+    <!-- Character encoding for proper rendering of special characters -->
     <meta charset="UTF-8">
+    <!-- Ensures proper scaling on mobile devices -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Page title displayed in browser tab -->
     <title>Analizador de Datos Estructurados Postillion</title>
+    <!-- External stylesheet for Font Awesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Inline CSS styling -->
     <style>
+        /* General body styling */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f4f4f9;
@@ -14,6 +22,7 @@
             color: #333;
         }
 
+        /* Main container styling */
         .container {
             width: 80%;
             margin: 30px auto;
@@ -24,6 +33,7 @@
             border: 2px solid #d9534f;
         }
 
+        /* Header styling */
         h1 {
             text-align: center;
             color: #d9534f;
@@ -31,6 +41,7 @@
             font-size: 2em;
         }
 
+        /* Textarea for data input */
         textarea {
             width: 100%;
             height: 150px;
@@ -43,6 +54,7 @@
             box-sizing: border-box;
         }
 
+        /* Button container layout */
         .button-container {
             display: flex;
             gap: 15px;
@@ -50,6 +62,7 @@
             margin: 20px 0;
         }
 
+        /* General button styling */
         button {
             padding: 12px 25px;
             font-size: 1.1rem;
@@ -62,29 +75,35 @@
             gap: 8px;
         }
 
+        /* Analyze button specific styling */
         .analyze-btn {
             background-color: #d9534f;
             color: white;
         }
 
+        /* Clear button specific styling */
         .clear-btn {
             background-color: #f8d7da;
             color: #d9534f;
             border: 2px solid #d9534f;
         }
 
+        /* Hover effect for buttons */
         button:hover {
             transform: translateY(-2px);
         }
 
+        /* Hover effect for analyze button */
         .analyze-btn:hover {
             background-color: #c9302c;
         }
 
+        /* Hover effect for clear button */
         .clear-btn:hover {
             background-color: #f5c6cb;
         }
 
+        /* Result section styling */
         .result {
             margin-top: 30px;
             padding: 25px;
@@ -93,6 +112,7 @@
             background-color: #f8f9fa;
         }
 
+        /* Styling for individual result items */
         .result div {
             margin: 15px 0;
             padding: 12px;
@@ -102,11 +122,13 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
+        /* Strong tag styling within results */
         .result strong {
             color: #d9534f;
             margin-right: 10px;
         }
 
+        /* Media query for responsive design */
         @media (max-width: 768px) {
             .container {
                 width: 95%;
@@ -127,6 +149,7 @@
             }
         }
 
+        /* Footer styling */
         .footer {
             background-color: #f4f4f9;
             padding: 20px;
@@ -135,20 +158,24 @@
             border-top: 2px solid #d9534f;
         }
 
+        /* Paragraph styling within footer */
         .footer-content p {
             margin: 8px 0;
             color: #666;
         }
 
+        /* Link styling within footer */
         .footer-content a {
             color: #d9534f;
             text-decoration: none;
         }
 
+        /* Link hover effect */
         .footer-content a:hover {
             text-decoration: underline;
         }
 
+        /* Logo image styling */
         .footer-logo img {
             max-width: 100px;
             margin-top: 15px;
@@ -156,10 +183,14 @@
     </style>
 </head>
 <body>
+    <!-- Main container -->
     <div class="container">
+        <!-- Title -->
         <h1>Analizador de Datos Estructurados Postillion</h1>
+        <!-- Input area for structured data -->
         <textarea id="dataInput" placeholder="Pega aquí el archivo de datos estructurado..."></textarea>
         
+        <!-- Buttons for analysis and clearing -->
         <div class="button-container">
             <button class="analyze-btn" onclick="analyzeData()">
                 <i class="fas fa-search"></i>
@@ -171,9 +202,11 @@
             </button>
         </div>
 
+        <!-- Section for displaying results -->
         <div class="result" id="result"></div>
     </div>
 
+    <!-- Footer section -->
     <footer class="footer">
         <div class="footer-content">
             <p>Desarrollo Web: Michael Steven Martinez Pulido</p>
@@ -189,78 +222,86 @@
         </div>
     </footer>
 
-    <script>
-        function analyzeData() {
-            const inputText = document.getElementById('dataInput').value;
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = '';
-
-            const getValue = (value, isCurrency = false) => {
-                if (!value || value === 'Dato no encontrado') return 'Dato no encontrado';
-                return isCurrency ? `$${value}` : value;
-            };
-
-            const extraerDato = (patron, transformacion = v => v) => {
-                const regex = new RegExp(patron.source, 'gi');
-                let match;
-                let lastMatch;
-                
-                while ((match = regex.exec(inputText)) !== null) {
-                    lastMatch = match;
-                }
-                
-                return lastMatch ? transformacion(lastMatch[1]) : 'Dato no encontrado';
-            };
-
-            const regexPatterns = {
-                retailerId: /Retailer_?Id\s*=\s*\[([^\]]+)\]/i,
-                nationalInternational: /NATIONAL[\/_]?INTERNATIONAL_?TX?\s*=\s*\[([^\]]+)\]/i,
-                network: /ACQ_?NETWORK\s*=\s*\[([^\]]+)\]/i,
-                instalments: /Instalments?\s*=\s*\[([^\]]+)\]/i,
-                pagoRecurrente: /PAGO_?RECURRENTE?\s*=\s*\[([^\]]+)\]/i,
-                amountReq: /AMOUNT_?REQ?\s*=\s*\[([^\]]+)\]/i
-            };
-
-            const datos = {
-                retailerId: extraerDato(regexPatterns.retailerId),
-                nationalInternational: extraerDato(
-                    regexPatterns.nationalInternational,
-                    v => {
-                        const valor = (v || '').toUpperCase();
-                        if (valor === 'N') return 'Nacional';
-                        if (valor === 'I' || valor === 'IN') return 'Internacional';
-                        return 'Desconocido';
+    <!-- Script para analizar datos -->
+        <script>
+            // Función para analizar los datos de entrada
+            function analyzeData() {
+                const inputText = document.getElementById('dataInput').value;
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = '';
+    
+                // Función auxiliar para formatear valores
+                const getValue = (value, isCurrency = false) => {
+                    if (!value || value === 'Dato no encontrado') return 'Dato no encontrado';
+                    return isCurrency ? `$${value}` : value;
+                };
+    
+                // Función para extraer datos utilizando patrones regex
+                const extraerDato = (patron, transformacion = v => v) => {
+                    const regex = new RegExp(patron.source, 'gi');
+                    let match;
+                    let lastMatch;
+                    
+                    while ((match = regex.exec(inputText)) !== null) {
+                        lastMatch = match;
                     }
-                ),
-                network: extraerDato(regexPatterns.network, v => v?.trim()),
-                instalments: extraerDato(regexPatterns.instalments),
-                pagoRecurrente: extraerDato(
-                    regexPatterns.pagoRecurrente,
-                    v => v?.toLowerCase() === 'true' ? 'Sí' : 'No'
-                ),
-                amountReq: extraerDato(
-                    regexPatterns.amountReq,
-                    v => {
-                        if (!v || isNaN(v)) return '0.00';
-                        return (parseInt(v) / 100).toFixed(2);
-                    }
-                )
-            };
-
-            resultDiv.innerHTML = `
-                <div><strong>Código Unido de Comercio:</strong> ${getValue(datos.retailerId)}</div>
-                <div><strong>Tipo de Transacción:</strong> ${getValue(datos.nationalInternational)}</div>
-                <div><strong>Red:</strong> ${getValue(datos.network)}</div>
-                <div><strong>Cuotas:</strong> ${getValue(datos.instalments)}</div>
-                <div><strong>Pago Recurrente:</strong> ${getValue(datos.pagoRecurrente)}</div>
-                <div><strong>Valor Transacción:</strong> ${getValue(datos.amountReq, true)}</div>
-            `;
-        }
-
-        function clearFields() {
-            document.getElementById('dataInput').value = '';
-            document.getElementById('result').innerHTML = '';
-        }
-    </script>
-</body>
-</html>
+                    
+                    return lastMatch ? transformacion(lastMatch[1]) : 'Dato no encontrado';
+                };
+    
+                // Definición de patrones regex para extraer puntos de datos específicos
+                const regexPatterns = {
+                    retailerId: /Retailer_?Id\s*=\s*\[([^\]]+)\]/i,
+                    nationalInternational: /NATIONAL[\/_]?INTERNATIONAL_?TX?\s*=\s*\[([^\]]+)\]/i,
+                    network: /ACQ_?NETWORK\s*=\s*\[([^\]]+)\]/i,
+                    instalments: /Instalments?\s*=\s*\[([^\]]+)\]/i,
+                    pagoRecurrente: /PAGO_?RECURRENTE?\s*=\s*\[([^\]]+)\]/i,
+                    amountReq: /AMOUNT_?REQ?\s*=\s*\[([^\]]+)\]/i
+                };
+    
+                // Extracción y procesamiento de datos basados en patrones definidos
+                const datos = {
+                    retailerId: extraerDato(regexPatterns.retailerId),
+                    nationalInternational: extraerDato(
+                        regexPatterns.nationalInternational,
+                        v => {
+                            const valor = (v || '').toUpperCase();
+                            if (valor === 'N') return 'Nacional';
+                            if (valor === 'I' || valor === 'IN') return 'Internacional';
+                            return 'Desconocido';
+                        }
+                    ),
+                    network: extraerDato(regexPatterns.network, v => v?.trim()),
+                    instalments: extraerDato(regexPatterns.instalments),
+                    pagoRecurrente: extraerDato(
+                        regexPatterns.pagoRecurrente,
+                        v => v?.toLowerCase() === 'true' ? 'Sí' : 'No'
+                    ),
+                    amountReq: extraerDato(
+                        regexPatterns.amountReq,
+                        v => {
+                            if (!v || isNaN(v)) return '0.00';
+                            return (parseInt(v) / 100).toFixed(2);
+                        }
+                    )
+                };
+    // Mostrar los datos extraídos en la sección de resultados
+    resultDiv.innerHTML = `
+        <div><strong>Código Unido de Comercio:</strong> ${getValue(datos.retailerId)}</div>
+        <div style="font-size: 0.9rem; color: #666;">El código único o MID tiene 8 dígitos. Si la consulta da una longitud diferente, puede que el comercio no tenga un Código único válido para la consulta. Puedes consultar información general del comercio mediante <a href="https://www.example.com/sei" target="_blank">SEI - conocer más...</a></div>
+        <div><strong>Tipo de Transacción:</strong> ${getValue(datos.nationalInternational)}</div>
+        <div><strong>Red:</strong> ${getValue(datos.network)}</div>
+        <div><strong>Cuotas:</strong> ${getValue(datos.instalments)}</div>
+        <div><strong>Pago Recurrente:</strong> ${getValue(datos.pagoRecurrente)}</div>
+        <div><strong>Valor Transacción:</strong> ${getValue(datos.amountReq, true)}</div>
+    `;
+            }
+    
+            // Función para limpiar los campos de entrada y resultados
+            function clearFields() {
+                document.getElementById('dataInput').value = '';
+                document.getElementById('result').innerHTML = '';
+            }
+        </script>
+    </body>
+    </html>
