@@ -281,7 +281,9 @@
                         regexPatterns.amountReq,
                         v => {
                             if (!v || isNaN(v)) return '0.00';
-                            return (parseInt(v) / 100).toFixed(2);
+                            const value = (parseInt(v) / 100).toFixed(2);
+                            const formattedValue = value.replace(/\./, ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                            return formattedValue;
                         }
                     )
                 };
