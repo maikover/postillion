@@ -215,7 +215,7 @@
                 <a href="https://www.example.com" target="_blank">Site Formación</a> I
                 <a href="https://www.example.com" target="_blank">WorkPlace</a>
             </p>
-            <p>2024</p>
+            <p>2025</p>
             <div class="footer-logo">
                 <img src="https://arcaico.com.co/wp-content/uploads/2024/12/logo-davivienda.png" alt="Logo Davivienda">
             </div>
@@ -292,7 +292,9 @@
         <div><strong>Tipo de Transacción:</strong> ${getValue(datos.nationalInternational)}</div>
         <div><strong>Red:</strong> ${getValue(datos.network)}</div>
         <div><strong>Cuotas:</strong> ${getValue(datos.instalments)}</div>
+        <div style="font-size: 0.9rem; color: #666;">Este es el número de cuotas reportado en la transacción, puede variar por configuración de compras futuras o diferido automático de transacciones internacionales.</div>
         <div><strong>Pago Recurrente:</strong> ${getValue(datos.pagoRecurrente)}</div>
+        <div style="font-size: 0.9rem; color: #666;">Indica si la transacción corresponde a una suscripción o cobro recurrente por parte del comercio.</div>
         <div><strong>Valor Transacción:</strong> ${getValue(datos.amountReq, true)}</div>
     `;
             }
