@@ -249,16 +249,16 @@
                     )
                 };
     // Mostrar los datos extraídos en la sección de resultados
-    resultDiv.innerHTML = `
-        <div><strong>Código Unico de Comercio:</strong> ${getValue(datos.retailerId)}</div>
+    divResultado.innerHTML = `
+        <div><strong>Código Unico de Comercio:</strong> ${obtenerValor(datos.retailerId)}</div>
         <div style="font-size: 0.9rem; color: #666;">El código único o MID tiene 8 dígitos. Si la consulta da una longitud diferente, puede que el comercio no tenga un Código único válido para la consulta. Puedes consultar información general del comercio mediante <a href="https://www.example.com/sei" target="_blank">SEI - conocer más...</a></div>
-        <div><strong>Tipo de Transacción:</strong> ${getValue(datos.nationalInternational)}</div>
-        <div><strong>Red:</strong> ${getValue(datos.network)}</div>
-        <div><strong>Cuotas:</strong> ${getValue(datos.instalments)}</div>
+        <div><strong>Tipo de Transacción:</strong> ${obtenerValor(datos.nationalInternational)}</div>
+        <div><strong>Red:</strong> ${obtenerValor(datos.network)}</div>
+        <div><strong>Cuotas:</strong> ${obtenerValor(datos.instalments)}</div>
         <div style="font-size: 0.9rem; color: #666;">Este es el número de cuotas reportado en la transacción, puede variar por configuración de compras futuras o diferido automático de transacciones internacionales.</div>
-        <div><strong>Pago Recurrente:</strong> ${getValue(datos.pagoRecurrente)}</div>
+        <div><strong>Pago Recurrente:</strong> ${obtenerValor(datos.pagoRecurrente)}</div>
         <div style="font-size: 0.9rem; color: #666;">Indica si la transacción corresponde a una suscripción o cobro recurrente por parte del comercio.</div>
-        <div><strong>Valor Transacción:</strong> ${getValue(datos.amountReq, true)}</div>
+        <div><strong>Valor Transacción:</strong> ${obtenerValor(datos.amountReq, true)}</div>
     `;
             }
     
