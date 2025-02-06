@@ -1,19 +1,12 @@
-<!-- DOCTYPE declaration specifies the document type and version -->
 <!DOCTYPE html>
-<!-- Language attribute set to Spanish -->
 <html lang="es">
 <head>
-    <!-- Character encoding for proper rendering of special characters -->
+    <!-- uso de caracteres especiales -->
     <meta charset="UTF-8">
-    <!-- Ensures proper scaling on mobile devices -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Page title displayed in browser tab -->
     <title>Analizador de Datos Estructurados Postillion</title>
-    <!-- External stylesheet for Font Awesome icons -->
+    <!-- incorporacion de Font Awesome para iconos vectoriales -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Inline CSS styling -->
     <style>
-        /* General body styling */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f4f4f9;
@@ -22,7 +15,6 @@
             color: #333;
         }
 
-        /* Main container styling */
         .container {
             width: 80%;
             margin: 30px auto;
@@ -33,7 +25,6 @@
             border: 2px solid #d9534f;
         }
 
-        /* Header styling */
         h1 {
             text-align: center;
             color: #d9534f;
@@ -41,7 +32,6 @@
             font-size: 2em;
         }
 
-        /* Textarea for data input */
         textarea {
             width: 100%;
             height: 150px;
@@ -54,7 +44,6 @@
             box-sizing: border-box;
         }
 
-        /* Button container layout */
         .button-container {
             display: flex;
             gap: 15px;
@@ -62,7 +51,6 @@
             margin: 20px 0;
         }
 
-        /* General button styling */
         button {
             padding: 12px 25px;
             font-size: 1.1rem;
@@ -75,35 +63,30 @@
             gap: 8px;
         }
 
-        /* Analyze button specific styling */
-        .analyze-btn {
+        .analizar-btn {
             background-color: #d9534f;
             color: white;
         }
 
-        /* Clear button specific styling */
-        .clear-btn {
+        .limpiar-btn {
             background-color: #f8d7da;
             color: #d9534f;
             border: 2px solid #d9534f;
         }
 
-        /* Hover effect for buttons */
+        /* hover agrega efectos al pasar el cursor, una pequeña elevacion y efecto de cambio de color a mas oscuro */
         button:hover {
             transform: translateY(-2px);
         }
 
-        /* Hover effect for analyze button */
-        .analyze-btn:hover {
+        .analizar-btn:hover {
             background-color: #c9302c;
         }
 
-        /* Hover effect for clear button */
-        .clear-btn:hover {
+        .limpiar-btn:hover {
             background-color: #f5c6cb;
         }
 
-        /* Result section styling */
         .result {
             margin-top: 30px;
             padding: 25px;
@@ -112,7 +95,7 @@
             background-color: #f8f9fa;
         }
 
-        /* Styling for individual result items */
+        /* estilo de los resultados */
         .result div {
             margin: 15px 0;
             padding: 12px;
@@ -122,34 +105,11 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        /* Strong tag styling within results */
         .result strong {
             color: #d9534f;
             margin-right: 10px;
         }
 
-        /* Media query for responsive design */
-        @media (max-width: 768px) {
-            .container {
-                width: 95%;
-                padding: 20px;
-            }
-            
-            .button-container {
-                flex-direction: column;
-            }
-            
-            button {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            textarea {
-                height: 120px;
-            }
-        }
-
-        /* Footer styling */
         .footer {
             background-color: #f4f4f9;
             padding: 20px;
@@ -158,24 +118,20 @@
             border-top: 2px solid #d9534f;
         }
 
-        /* Paragraph styling within footer */
         .footer-content p {
             margin: 8px 0;
             color: #666;
         }
 
-        /* Link styling within footer */
         .footer-content a {
             color: #d9534f;
             text-decoration: none;
         }
 
-        /* Link hover effect */
         .footer-content a:hover {
             text-decoration: underline;
         }
 
-        /* Logo image styling */
         .footer-logo img {
             max-width: 100px;
             margin-top: 15px;
@@ -183,30 +139,28 @@
     </style>
 </head>
 <body>
-    <!-- Main container -->
+    <!-- contenedor principal -->
     <div class="container">
-        <!-- Title -->
         <h1>Analizador de Datos Estructurados Postillion</h1>
-        <!-- Input area for structured data -->
         <textarea id="dataInput" placeholder="Pega aquí el archivo de datos estructurado..."></textarea>
         
-        <!-- Buttons for analysis and clearing -->
+        <!-- creacion de los botones y se le da nombre a las funciones que se les asigna -->
         <div class="button-container">
-            <button class="analyze-btn" onclick="analyzeData()">
+            <button class="analizar-btn" onclick="AnalizarDatos()">
                 <i class="fas fa-search"></i>
                 Analizar
             </button>
-            <button class="clear-btn" onclick="clearFields()">
+            <button class="limpiar-btn" onclick="LimpiarDatos()">
                 <i class="fas fa-eraser"></i>
                 Limpiar
             </button>
         </div>
 
-        <!-- Section for displaying results -->
+        <!-- Contenedor de los resultados contenido solo visible al analizar datos -->
         <div class="result" id="result"></div>
     </div>
 
-    <!-- Footer section -->
+    <!-- Contenido del pie hay que editar los enlaces por los correctos -->
     <footer class="footer">
         <div class="footer-content">
             <p>Desarrollo Web: Michael Steven Martinez Pulido</p>
@@ -222,34 +176,36 @@
         </div>
     </footer>
 
-    <!-- Script para analizar datos -->
+    <!-- con nombre AnalizarDatos sera la funciona para analizar los datos, crear un filtro o busqueda para extraer tecto del dato estructurado como =extrae de excel -->
         <script>
-            // Función para analizar los datos de entrada
-            function analyzeData() {
-                const inputText = document.getElementById('dataInput').value;
-                const resultDiv = document.getElementById('result');
-                resultDiv.innerHTML = '';
+            // Obtenemos el texto de dataInput para el analisis y muestra los resultados innerHTML limpia el campo de resultados antes de mostrar los nuevos
+            function AnalizarDatos() {
+                const textoEntrada = document.getElementById('dataInput').value;
+                const divResultado = document.getElementById('result');
+                divResultado.innerHTML = '';
     
-                // Función auxiliar para formatear valores
-                const getValue = (value, isCurrency = false) => {
-                    if (!value || value === 'Dato no encontrado') return 'Dato no encontrado';
-                    return isCurrency ? `$${value}` : value;
+                // formateo de los resultados si es null dar como resultado Dato no encontrado, si es valor asignamos signo dolar al inicio el predefinido el falso
+                const obtenerValor = (valor, esMoneda = false) => {
+                    if (!valor || valor === 'Dato no encontrado') return 'Dato no encontrado';
+                    return esMoneda ? `$${valor}` : valor;
                 };
     
-                // Función para extraer datos utilizando patrones regex
+                // Función para extraer datos utilizando patrones regex, patron establece el elemento comun donde se encuentra el contenido por suerte parece ser el mismo para todos {}
                 const extraerDato = (patron, transformacion = v => v) => {
-                    const regex = new RegExp(patron.source, 'gi');
-                    let match;
-                    let lastMatch;
-                    
-                    while ((match = regex.exec(inputText)) !== null) {
-                        lastMatch = match;
+                    //obtiene el contenido en cadena de texto
+                    const expresionRegular = new RegExp(patron.source, 'gi');
+                    //almacena la coincidencia encontrada
+                    let coincidencia;
+                    let ultimaCoincidencia;
+                    // busca por todo el textoEntrada coincidencias definidos en los patrones regex si no hay considencia es null y extrae el dato lo almacena en ultimaCoincidencia
+                    while ((coincidencia = expresionRegular.exec(textoEntrada)) !== null) {
+                        ultimaCoincidencia = coincidencia;
                     }
-                    
-                    return lastMatch ? transformacion(lastMatch[1]) : 'Dato no encontrado';
+                    // cerifica el ultimo dato guardado si es null le da calor de dato no encontrado
+                    return ultimaCoincidencia ? transformacion(ultimaCoincidencia[1]) : 'Dato no encontrado';
                 };
     
-                // Definición de patrones regex para extraer puntos de datos específicos
+                // Se defines los patrones regex para extraer puntos de datos específicos para cada uno de los datos buscados, podra identificar a pesar de algunas variantes
                 const regexPatterns = {
                     retailerId: /Retailer_?Id\s*=\s*\[([^\]]+)\]/i,
                     nationalInternational: /NATIONAL[\/_]?INTERNATIONAL_?TX?\s*=\s*\[([^\]]+)\]/i,
@@ -259,9 +215,10 @@
                     amountReq: /AMOUNT_?REQ?\s*=\s*\[([^\]]+)\]/i
                 };
     
-                // Extracción y procesamiento de datos basados en patrones definidos
+                // datos almacenara los resultatos o datos extraidos se crea una propiedad para cada uno de los resultados necesitados
                 const datos = {
                     retailerId: extraerDato(regexPatterns.retailerId),
+                    // aplicamos una transformacion para en ves de mostrar N o I de como resultado Nacional o Internacional
                     nationalInternational: extraerDato(
                         regexPatterns.nationalInternational,
                         v => {
@@ -271,12 +228,16 @@
                             return 'Desconocido';
                         }
                     ),
+                    // tim elimina espacios
                     network: extraerDato(regexPatterns.network, v => v?.trim()),
                     instalments: extraerDato(regexPatterns.instalments),
+                    //transformacion de true o false por si o no
                     pagoRecurrente: extraerDato(
                         regexPatterns.pagoRecurrente,
                         v => v?.toLowerCase() === 'true' ? 'Sí' : 'No'
                     ),
+
+                    //transformacion si el valor es nulo, divide el vaor en 100 para agregarle los dos centavos, separa los miles con . y da una , a los centavos
                     amountReq: extraerDato(
                         regexPatterns.amountReq,
                         v => {
@@ -289,7 +250,7 @@
                 };
     // Mostrar los datos extraídos en la sección de resultados
     resultDiv.innerHTML = `
-        <div><strong>Código Unido de Comercio:</strong> ${getValue(datos.retailerId)}</div>
+        <div><strong>Código Unico de Comercio:</strong> ${getValue(datos.retailerId)}</div>
         <div style="font-size: 0.9rem; color: #666;">El código único o MID tiene 8 dígitos. Si la consulta da una longitud diferente, puede que el comercio no tenga un Código único válido para la consulta. Puedes consultar información general del comercio mediante <a href="https://www.example.com/sei" target="_blank">SEI - conocer más...</a></div>
         <div><strong>Tipo de Transacción:</strong> ${getValue(datos.nationalInternational)}</div>
         <div><strong>Red:</strong> ${getValue(datos.network)}</div>
@@ -301,8 +262,8 @@
     `;
             }
     
-            // Función para limpiar los campos de entrada y resultados
-            function clearFields() {
+            // Función para el boton limpiar limpiar los campos de entrada y resultados
+            function LimpiarDatos() {
                 document.getElementById('dataInput').value = '';
                 document.getElementById('result').innerHTML = '';
             }
