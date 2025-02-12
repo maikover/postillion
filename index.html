@@ -177,96 +177,148 @@
     </footer>
 
     <!-- con nombre AnalizarDatos sera la funciona para analizar los datos, crear un filtro o busqueda para extraer tecto del dato estructurado como =extrae de excel -->
-        <script>
-            // Obtenemos el texto de dataInput para el analisis y muestra los resultados innerHTML limpia el campo de resultados antes de mostrar los nuevos
-            function AnalizarDatos() {
-                const textoEntrada = document.getElementById('dataInput').value;
-                const divResultado = document.getElementById('result');
-                divResultado.innerHTML = '';
+    <script>
+        // Función que se ejecuta al pulsar "Analizar"
+        function AnalizarDatos() {
+            const textoEntrada = document.getElementById('dataInput').value;
+            const divResultado = document.getElementById('result');
+            divResultado.innerHTML = '';
     
-                // formateo de los resultados si es null dar como resultado Dato no encontrado, si es valor asignamos signo dolar al inicio el predefinido el falso
-                const obtenerValor = (valor, esMoneda = false) => {
-                    if (!valor || valor === 'Dato no encontrado') return 'Dato no encontrado';
-                    return esMoneda ? `$${valor}` : valor;
-                };
+            // Función para formatear valores (agrega el signo de dólar si es moneda)
+            const obtenerValor = (valor, esMoneda = false) => {
+                if (!valor || valor === 'Dato no encontrado') return 'Dato no encontrado';
+                return esMoneda ? `$${valor}` : valor;
+            };
     
-                // Función para extraer datos utilizando patrones regex, patron establece el elemento comun donde se encuentra el contenido por suerte parece ser el mismo para todos {}
-                const extraerDato = (patron, transformacion = v => v) => {
-                    //obtiene el contenido en cadena de texto
-                    const expresionRegular = new RegExp(patron.source, 'gi');
-                    //almacena la coincidencia encontrada
-                    let coincidencia;
-                    let ultimaCoincidencia;
-                    // busca por todo el textoEntrada coincidencias definidos en los patrones regex si no hay considencia es null y extrae el dato lo almacena en ultimaCoincidencia
-                    while ((coincidencia = expresionRegular.exec(textoEntrada)) !== null) {
-                        ultimaCoincidencia = coincidencia;
+            // Función para extraer datos mediante expresiones regulares
+            const extraerDato = (patron, transformacion = v => v) => {
+                const expresionRegular = new RegExp(patron.source, 'gi');
+                let coincidencia;
+                let ultimaCoincidencia;
+                while ((coincidencia = expresionRegular.exec(textoEntrada)) !== null) {
+                    ultimaCoincidencia = coincidencia;
+                }
+                return ultimaCoincidencia ? transformacion(ultimaCoincidencia[1]) : 'Dato no encontrado';
+            };
+    
+            // Definición de los patrones regex para cada dato
+            const regexPatterns = {
+                retailerId: /Retailer_?Id\s*=\s*\[([^\]]+)\]/i,
+                nationalInternational: /NATIONAL[\/_]?INTERNATIONAL_?TX?\s*=\s*\[([^\]]+)\]/i,
+                network: /ACQ_?NETWORK\s*=\s*\[([^\]]+)\]/i,
+                instalments: /Instalments?\s*=\s*\[([^\]]+)\]/i,
+                pagoRecurrente: /PAGO_?RECURRENTE?\s*=\s*\[([^\]]+)\]/i,
+                amountReq: /AMOUNT_?REQ?\s*=\s*\[([^\]]+)\]/i
+            };
+    
+            // Extracción de los datos del texto
+            const datos = {
+                retailerId: extraerDato(regexPatterns.retailerId),
+                nationalInternational: extraerDato(
+                    regexPatterns.nationalInternational,
+                    v => {
+                        const valor = (v || '').toUpperCase();
+                        if (valor === 'N') return 'Nacional';
+                        if (valor === 'I' || valor === 'IN') return 'Internacional';
+                        return 'Desconocido';
                     }
-                    // cerifica el ultimo dato guardado si es null le da calor de dato no encontrado
-                    return ultimaCoincidencia ? transformacion(ultimaCoincidencia[1]) : 'Dato no encontrado';
-                };
+                ),
+                network: extraerDato(regexPatterns.network, v => v?.trim()),
+                instalments: extraerDato(regexPatterns.instalments),
+                pagoRecurrente: extraerDato(
+                    regexPatterns.pagoRecurrente,
+                    v => v?.toLowerCase() === 'true' ? 'Sí' : 'No'
+                ),
+                amountReq: extraerDato(
+                    regexPatterns.amountReq,
+                    v => {
+                        if (!v || isNaN(v)) return '0.00';
+                        const value = (parseInt(v) / 100).toFixed(2);
+                        const formattedValue = value.replace(/\./, ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                        return formattedValue;
+                    }
+                )
+            };
     
-                // Se defines los patrones regex para extraer puntos de datos específicos para cada uno de los datos buscados, podra identificar a pesar de algunas variantes
-                const regexPatterns = {
-                    retailerId: /Retailer_?Id\s*=\s*\[([^\]]+)\]/i,
-                    nationalInternational: /NATIONAL[\/_]?INTERNATIONAL_?TX?\s*=\s*\[([^\]]+)\]/i,
-                    network: /ACQ_?NETWORK\s*=\s*\[([^\]]+)\]/i,
-                    instalments: /Instalments?\s*=\s*\[([^\]]+)\]/i,
-                    pagoRecurrente: /PAGO_?RECURRENTE?\s*=\s*\[([^\]]+)\]/i,
-                    amountReq: /AMOUNT_?REQ?\s*=\s*\[([^\]]+)\]/i
-                };
+            // --- CONSULTA A LA API PARA EL CÓDIGO ÚNICO DE COMERCIO ---
+            // Obtenemos el código único extraído
+            let retailerId = datos.retailerId;
     
-                // datos almacenara los resultatos o datos extraidos se crea una propiedad para cada uno de los resultados necesitados
-                const datos = {
-                    retailerId: extraerDato(regexPatterns.retailerId),
-                    // aplicamos una transformacion para en ves de mostrar N o I de como resultado Nacional o Internacional
-                    nationalInternational: extraerDato(
-                        regexPatterns.nationalInternational,
-                        v => {
-                            const valor = (v || '').toUpperCase();
-                            if (valor === 'N') return 'Nacional';
-                            if (valor === 'I' || valor === 'IN') return 'Internacional';
-                            return 'Desconocido';
+            // Si se encontró el código, se procede a ajustar el valor para la consulta
+            if (retailerId && retailerId !== 'Dato no encontrado') {
+                // Si el código tiene más de 8 dígitos (por ejemplo "0012345678"), usamos los últimos 8 dígitos
+                if (retailerId.length > 8) {
+                    retailerId = retailerId.slice(-8);
+                }
+                // Construimos la URL de la API (reemplaza TU_DEPLOYMENT_ID por tu ID real)
+                const apiUrl = 'https://script.google.com/macros/s/AKfycbz1Jpkl1s5kWMeDYv0AcvIB6jvex2dloOfke0piFaA7naRI9eLNZJl95l8WhOq7AQlD/exec?codigo=' + encodeURIComponent(retailerId);
+    
+                // Realizamos la consulta a la API mediante fetch
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(apiResult => {
+                        // Construimos el HTML que mostrará tanto los datos locales como los resultados de la API
+                        let htmlOutput = `
+                            <div><strong>Código Único de Comercio:</strong> ${obtenerValor(retailerId)}</div>
+                            <div style="font-size: 0.9rem; color: #666;">
+                                El código único o MID tiene 8 dígitos. Si la consulta da una longitud diferente, puede que el comercio no tenga un Código único válido para la consulta.
+                                Puedes consultar información general del comercio mediante <a href="https://www.example.com/sei" target="_blank">SEI - conocer más...</a>
+                            </div>
+                            <div><strong>Tipo de Transacción:</strong> ${obtenerValor(datos.nationalInternational)}</div>
+                            <div><strong>Red:</strong> ${obtenerValor(datos.network)}</div>
+                            <div><strong>Cuotas:</strong> ${obtenerValor(datos.instalments)}</div>
+                            <div style="font-size: 0.9rem; color: #666;">
+                                Este es el número de cuotas reportado en la transacción, puede variar por configuración de compras futuras o diferido automático de transacciones internacionales.
+                            </div>
+                            <div><strong>Pago Recurrente:</strong> ${obtenerValor(datos.pagoRecurrente)}</div>
+                            <div style="font-size: 0.9rem; color: #666;">
+                                Indica si la transacción corresponde a una suscripción o cobro recurrente por parte del comercio.
+                            </div>
+                            <div><strong>Valor Transacción:</strong> ${obtenerValor(datos.amountReq, true)}</div>
+                        `;
+                        
+                        // Agregamos los datos obtenidos de la API
+                        if (apiResult.error) {
+                            htmlOutput += `<div style="color: red;"><strong>Error en API:</strong> ${apiResult.error}</div>`;
+                        } else {
+                            htmlOutput += `<div><strong>Nombre de Estrategia:</strong> ${obtenerValor(apiResult.nombre_estrategia)}</div>`;
+                            htmlOutput += `<div><strong>Histórico:</strong> ${obtenerValor(apiResult.historico)}</div>`;
                         }
-                    ),
-                    // tim elimina espacios
-                    network: extraerDato(regexPatterns.network, v => v?.trim()),
-                    instalments: extraerDato(regexPatterns.instalments),
-                    //transformacion de true o false por si o no
-                    pagoRecurrente: extraerDato(
-                        regexPatterns.pagoRecurrente,
-                        v => v?.toLowerCase() === 'true' ? 'Sí' : 'No'
-                    ),
-
-                    //transformacion si el valor es nulo, divide el vaor en 100 para agregarle los dos centavos, separa los miles con . y da una , a los centavos
-                    amountReq: extraerDato(
-                        regexPatterns.amountReq,
-                        v => {
-                            if (!v || isNaN(v)) return '0.00';
-                            const value = (parseInt(v) / 100).toFixed(2);
-                            const formattedValue = value.replace(/\./, ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                            return formattedValue;
-                        }
-                    )
-                };
-    // Mostrar los datos extraídos en la sección de resultados
-    divResultado.innerHTML = `
-        <div><strong>Código Unico de Comercio:</strong> ${obtenerValor(datos.retailerId)}</div>
-        <div style="font-size: 0.9rem; color: #666;">El código único o MID tiene 8 dígitos. Si la consulta da una longitud diferente, puede que el comercio no tenga un Código único válido para la consulta. Puedes consultar información general del comercio mediante <a href="https://www.example.com/sei" target="_blank">SEI - conocer más...</a></div>
-        <div><strong>Tipo de Transacción:</strong> ${obtenerValor(datos.nationalInternational)}</div>
-        <div><strong>Red:</strong> ${obtenerValor(datos.network)}</div>
-        <div><strong>Cuotas:</strong> ${obtenerValor(datos.instalments)}</div>
-        <div style="font-size: 0.9rem; color: #666;">Este es el número de cuotas reportado en la transacción, puede variar por configuración de compras futuras o diferido automático de transacciones internacionales.</div>
-        <div><strong>Pago Recurrente:</strong> ${obtenerValor(datos.pagoRecurrente)}</div>
-        <div style="font-size: 0.9rem; color: #666;">Indica si la transacción corresponde a una suscripción o cobro recurrente por parte del comercio.</div>
-        <div><strong>Valor Transacción:</strong> ${obtenerValor(datos.amountReq, true)}</div>
-    `;
+                        divResultado.innerHTML = htmlOutput;
+                    })
+                    .catch(error => {
+                        console.error('Error al consultar la API:', error);
+                        divResultado.innerHTML = `<div style="color:red;">Error al consultar la API: ${error}</div>`;
+                    });
+            } else {
+                // Si no se encontró el código, mostramos los datos extraídos (sin consulta a la API)
+                divResultado.innerHTML = `
+                    <div><strong>Código Único de Comercio:</strong> ${obtenerValor(datos.retailerId)}</div>
+                    <div style="font-size: 0.9rem; color: #666;">
+                        El código único o MID tiene 8 dígitos. Si la consulta da una longitud diferente, puede que el comercio no tenga un Código único válido para la consulta.
+                        Puedes consultar información general del comercio mediante <a href="https://www.example.com/sei" target="_blank">SEI - conocer más...</a>
+                    </div>
+                    <div><strong>Tipo de Transacción:</strong> ${obtenerValor(datos.nationalInternational)}</div>
+                    <div><strong>Red:</strong> ${obtenerValor(datos.network)}</div>
+                    <div><strong>Cuotas:</strong> ${obtenerValor(datos.instalments)}</div>
+                    <div style="font-size: 0.9rem; color: #666;">
+                        Este es el número de cuotas reportado en la transacción, puede variar por configuración de compras futuras o diferido automático de transacciones internacionales.
+                    </div>
+                    <div><strong>Pago Recurrente:</strong> ${obtenerValor(datos.pagoRecurrente)}</div>
+                    <div style="font-size: 0.9rem; color: #666;">
+                        Indica si la transacción corresponde a una suscripción o cobro recurrente por parte del comercio.
+                    </div>
+                    <div><strong>Valor Transacción:</strong> ${obtenerValor(datos.amountReq, true)}</div>
+                `;
             }
+        }
     
-            // Función para el boton limpiar limpiar los campos de entrada y resultados
-            function LimpiarDatos() {
-                document.getElementById('dataInput').value = '';
-                document.getElementById('result').innerHTML = '';
-            }
-        </script>
+        // Función para limpiar los campos de entrada y resultados
+        function LimpiarDatos() {
+            document.getElementById('dataInput').value = '';
+            document.getElementById('result').innerHTML = '';
+        }
+    </script>
+    
     </body>
     </html>
